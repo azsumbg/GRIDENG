@@ -287,7 +287,111 @@ void dll::GRID::add_row(dirs where)
 	}
 }
 
-void add_col(dirs where);
+void dll::GRID::add_col(dirs where)
+{
+	if (where == dirs::left)
+	{
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS - 1; ++cols)
+			{ 
+				grid[rows][cols + 1].type = grid[rows][cols].type;
+				grid[rows][cols + 1].dims = grid[rows][cols].dims;
+				grid[rows][cols + 1].move_reduct = grid[rows][cols].move_reduct;
+			}
+		}
+
+		float my_y = up_tile_y;
+
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			int atype = RandIt(0, 4);
+
+			grid[rows][0].type = static_cast<tiles>(atype);
+
+			grid[rows][0].dims.up = my_y;
+			grid[rows][0].dims.left = left_tile_x;
+			grid[rows][0].dims.right = grid[rows][0].dims.left + 49.0f;
+			grid[rows][0].dims.down = grid[rows][0].dims.up + 49.0f;
+
+			switch (grid[rows][0].type)
+			{
+			case tiles::dirt:
+				grid[rows][0].move_reduct = 0;
+				break;
+
+			case tiles::forest:
+				grid[rows][0].move_reduct = -0.5f;
+				break;
+
+			case tiles::lava:
+				grid[rows][0].move_reduct = -3.5f;
+				break;
+
+			case tiles::path:
+				grid[rows][0].move_reduct = +0.5f;
+				break;
+
+			case tiles::water:
+				grid[rows][0].move_reduct = -8.0f;
+				break;
+			}
+
+			my_y += 50.0f;
+		}
+	}
+	else if (where == dirs::right)
+	{
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = GRID_MAX_COLS - 1; cols > 0; --cols)
+			{
+				grid[rows][cols - 1].type = grid[rows][cols].type;
+				grid[rows][cols - 1].dims = grid[rows][cols].dims;
+				grid[rows][cols - 1].move_reduct = grid[rows][cols].move_reduct;
+			}
+		}
+
+		float my_y = up_tile_y;
+
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			int atype = RandIt(0, 4);
+
+			grid[rows][GRID_MAX_COLS - 1].type = static_cast<tiles>(atype);
+
+			grid[rows][GRID_MAX_COLS - 1].dims.up = my_y;
+			grid[rows][GRID_MAX_COLS - 1].dims.left = left_tile_x;
+			grid[rows][GRID_MAX_COLS - 1].dims.right = grid[rows][GRID_MAX_COLS - 1].dims.left + 49.0f;
+			grid[rows][GRID_MAX_COLS - 1].dims.down = grid[rows][GRID_MAX_COLS - 1].dims.up + 49.0f;
+
+			switch (grid[rows][GRID_MAX_COLS - 1].type)
+			{
+			case tiles::dirt:
+				grid[rows][GRID_MAX_COLS - 1].move_reduct = 0;
+				break;
+
+			case tiles::forest:
+				grid[rows][GRID_MAX_COLS - 1].move_reduct = -0.5f;
+				break;
+
+			case tiles::lava:
+				grid[rows][GRID_MAX_COLS - 1].move_reduct = -3.5f;
+				break;
+
+			case tiles::path:
+				grid[rows][GRID_MAX_COLS - 1].move_reduct = +0.5f;
+				break;
+
+			case tiles::water:
+				grid[rows][GRID_MAX_COLS - 1].move_reduct = -8.0f;
+				break;
+			}
+
+			my_y += 50.0f;
+		}
+	}
+}
 
 tiles dll::GRID::get_type(int row, int col)const
 {
@@ -304,6 +408,166 @@ FRECT dll::GRID::get_dims(int row, int col)const
 	return grid[row][col].dims;
 }
 
-void move(dirs to_where, float gear);
+void dll::GRID::move(dirs to_where, float gear)
+{
+	switch (to_where)
+	{
+	case dirs::up:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up -= gear;
+				grid[rows][cols].dims.down -= gear;
+			}
+		}
+		if (grid[0][0].dims.down <= up_tile_y)
+		{
+			add_row(dirs::down);
+			break;
+		}
+		break;
+
+	case dirs::down:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up += gear;
+				grid[rows][cols].dims.down += gear;
+			}
+		}
+		if (grid[GRID_MAX_ROWS - 1][0].dims.up >= down_tile_y)
+		{
+			add_row(dirs::up);
+			break;
+		}
+		break;
+
+	case dirs::left:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.left -= gear;
+				grid[rows][cols].dims.right -= gear;
+			}
+		}
+		if (grid[0][0].dims.right <= left_tile_x)
+		{
+			add_row(dirs::right);
+			break;
+		}
+		break;
+
+	case dirs::right:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.left += gear;
+				grid[rows][cols].dims.right += gear;
+			}
+		}
+		if (grid[0][GRID_MAX_COLS - 1].dims.left >= right_tile_x)
+		{
+			add_row(dirs::left);
+			break;
+		}
+		break;
+
+	case dirs::up_left:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up -= gear;
+				grid[rows][cols].dims.down -= gear;
+				grid[rows][cols].dims.left -= gear;
+				grid[rows][cols].dims.right -= gear;
+			}
+		}
+		if (grid[0][0].dims.down <= up_tile_y)
+		{
+			add_row(dirs::down);
+			break;
+		}
+		if (grid[0][0].dims.right <= left_tile_x)
+		{
+			add_row(dirs::right);
+			break;
+		}
+		break;
+
+	case dirs::up_right:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up -= gear;
+				grid[rows][cols].dims.down -= gear;
+				grid[rows][cols].dims.left += gear;
+				grid[rows][cols].dims.right += gear;
+			}
+		}
+		if (grid[0][0].dims.down <= up_tile_y)
+		{
+			add_row(dirs::down);
+			break;
+		}
+		if (grid[0][GRID_MAX_COLS - 1].dims.left >= right_tile_x)
+		{
+			add_row(dirs::left);
+			break;
+		}
+		break;
+
+	case dirs::down_left:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up += gear;
+				grid[rows][cols].dims.down += gear;
+				grid[rows][cols].dims.left -= gear;
+				grid[rows][cols].dims.right -= gear;
+			}
+		}
+		if (grid[GRID_MAX_ROWS - 1][0].dims.up >= down_tile_y)
+		{
+			add_row(dirs::up);
+			break;
+		}
+		if (grid[0][0].dims.right <= left_tile_x)
+		{
+			add_row(dirs::right);
+			break;
+		}
+		break;
+
+	case dirs::down_right:
+		for (int rows = 0; rows < GRID_MAX_ROWS; ++rows)
+		{
+			for (int cols = 0; cols < GRID_MAX_COLS; ++cols)
+			{
+				grid[rows][cols].dims.up += gear;
+				grid[rows][cols].dims.down += gear;
+				grid[rows][cols].dims.left += gear;
+				grid[rows][cols].dims.right += gear;
+			}
+		}
+		if (grid[GRID_MAX_ROWS - 1][0].dims.up >= down_tile_y)
+		{
+			add_row(dirs::up);
+			break;
+		}
+		if (grid[0][GRID_MAX_COLS - 1].dims.left >= right_tile_x)
+		{
+			add_row(dirs::left);
+			break;
+		}
+		break;
+	}
+}
 
 ////////////////////////////////////////

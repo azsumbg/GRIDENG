@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="GRIDENG/GRIDENG.vcxproj" />
+  <Project Path="GRIDENG/GRIDENG.vcxproj" Id="6490df4e-e487-48ce-9377-247b86e42e9b" />
 </Solution>
