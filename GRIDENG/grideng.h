@@ -108,6 +108,8 @@ namespace dll
 
 		tiles get_type(int row, int col)const;
 
+		void set_type(tiles what_type, int row, int col);
+
 		float get_move_reduct(int row, int col)const;
 
 		FRECT get_dims(int row, int col)const;

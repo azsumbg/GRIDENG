@@ -398,6 +398,11 @@ tiles dll::GRID::get_type(int row, int col)const
 	return grid[row][col].type;
 }
 
+void dll::GRID::set_type(tiles what_type, int row, int col)
+{
+	grid[row][col].type = what_type;
+}
+
 float dll::GRID::get_move_reduct(int row, int col)const
 {
 	return grid[row][col].move_reduct;
