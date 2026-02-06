@@ -23,6 +23,10 @@ constexpr float right_tile_x{ scr_width + 100.0f };
 constexpr int GRID_MAX_COLS{ 16 };
 constexpr int GRID_MAX_ROWS{ 20 };
 
+constexpr int BAG_OK = 4000;
+constexpr int BAG_BAD_PTR = 4001;
+constexpr int BAG_BAD_INDEX = 4002;
+constexpr int BAG_UNKNOWN_ERR = 4003;
 
 enum class dirs { up_left = 0, up = 1, up_right = 2, right = 3, down_right = 4, down = 5, down_left = 6, left = 7 };
 enum class tiles { dirt = 0, forest = 1, lava = 2, path = 3, water = 4 };
@@ -48,9 +52,193 @@ struct GRIDENG_API TILE
 	float move_reduct{ 0 };
 };
 
-
 namespace dll
 {
+	template<typename T> class BAG
+	{
+	private:
+		T* m_ptr{ nullptr };
+		size_t max_size{ 0 };
+		size_t next_pos{ 0 };
+		bool valid = false;
+
+	public:
+		BAG() :max_size{ 1 }, m_ptr{ reinterpret_cast<T>(calloc(1, sizeof(T))) } {};
+		BAG(size_t capacity) :max_size{ capacity }, m_ptr{ reinterpret_cast<T>(calloc(capacity, sizeof(T))) } {};
+		BAG(BAG& other)
+		{
+			max_size = other.max_size;
+			m_ptr = reinterpret_cast<T*>(calloc(max_size, sizeof(T)));
+			for (size_t count = 0; count < other.next_pos; ++count)m_ptr[count] = other.m_ptr[count];
+			next_pos = other.next_pos;
+			valid = other.valid;
+		}
+		BAG(BAG&& other)
+		{
+			m_ptr = other.m_ptr;
+			max_size = other.max_size;
+			next_pos = other.next_pos;
+			valid = other.valid;
+			other.m_ptr = nullptr;
+		}
+		~BAG()
+		{
+			free(m_ptr);
+			m_ptr = nullptr;
+		}
+
+		int push_back(T element)
+		{
+			if (!m_ptr)
+			{
+				valid = false;
+				return BAG_BAD_PTR;
+			}
+			else
+			{
+				if (next_pos + 1 <= max_size)
+				{
+					m_ptr[next_pos] = element;
+					++next_pos;
+					valid = true;
+					return BAG_OK;
+				}
+				else
+				{
+					++max_size;
+					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
+					if (!mPtr)return BAG_BAD_PTR;
+					else
+					{
+						m_ptr[next_pos] = element;
+						++next_pos;
+						valid = true;
+						return BAG_OK;
+					}
+				}
+			}
+
+			return BAG_UNKNOWN_ERR;
+		}
+		int push_back(T* element)
+		{
+			if (!m_ptr)
+			{
+				valid = false;
+				return BAG_BAD_PTR;
+			}
+			else
+			{
+				if (next_pos + 1 <= max_size)
+				{
+					m_ptr[next_pos] = (*element);
+					++next_pos;
+					valid = true;
+					return BAG_OK;
+				}
+				else
+				{
+					++max_size;
+					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
+					if (!mPtr)return BAG_BAD_PTR;
+					else
+					{
+						m_ptr[next_pos] = *element;
+						++next_pos;
+						valid = true;
+						return BAG_OK;
+					}
+				}
+			}
+
+			return BAG_UNKNOWN_ERR;
+		}
+
+		int push_front(T element)
+		{
+			if (!m_ptr)
+			{
+				valid = false;
+				return BAG_BAD_PTR;
+			}
+			else
+			{
+				if (next_pos + 1 <= max_size)
+				{
+					for (size_t count = next_pos; count > 0; --count)m_ptr[count] = m_ptr[count - 1];
+					m_ptr[0] = element;
+					++next_pos;
+					valid = true;
+					return BAG_OK;
+				}
+				else
+				{
+					++max_size;
+					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
+					if (!m_ptr)
+					{
+						valid = false;
+						return BAG_BAD_PTR;
+					}
+					else
+					{
+						for (size_t count = next_pos; count > 0; --count)m_ptr[count] = m_ptr[count - 1];
+						m_ptr[0] = element;
+						++next_pos;
+						valid = true;
+						return BAG_OK;
+					}
+				}
+			}
+
+			return BAG_UNKNOWN_ERR;
+		}
+		int push_front(T* element)
+		{
+			if (!m_ptr)
+			{
+				valid = false;
+				return BAG_BAD_PTR;
+			}
+			else
+			{
+				if (next_pos + 1 <= max_size)
+				{
+					for (size_t count = next_pos; count > 0; --count)m_ptr[count] = m_ptr[count - 1];
+					m_ptr[0] = *element;
+					++next_pos;
+					valid = true;
+					return BAG_OK;
+				}
+				else
+				{
+					++max_size;
+					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
+					if (!m_ptr)
+					{
+						valid = false;
+						return BAG_BAD_PTR;
+					}
+					else
+					{
+						for (size_t count = next_pos; count > 0; --count)m_ptr[count] = m_ptr[count - 1];
+						m_ptr[0] = *element;
+						++next_pos;
+						valid = true;
+						return BAG_OK;
+					}
+				}
+			}
+
+			return BAG_UNKNOWN_ERR;
+		}
+
+
+
+
+	};
+
+
 	class GRIDENG_API RANDIT
 	{
 	private:
