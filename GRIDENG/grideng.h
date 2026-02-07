@@ -233,9 +233,90 @@ namespace dll
 			return BAG_UNKNOWN_ERR;
 		}
 
+		int erase(size_t index)
+		{
+			if (index < 0 || index >= next_pos)return BAG_BAD_INDEX;
+			if (!m_ptr)return BAG_BAD_PTR;
+			else
+			{
+				for (size_t count = index; count < next_pos - 1; count++)m_ptr[count] = m_ptr[count + 1];
+				--next_pos;
+				return BAG_OK;
+			}
 
+			return BAG_UNKNOWN_ERR;
+		}
 
+		BAG& operator = (BAG& other)
+		{
+			BAG dummy();
+			
+			if (m_ptr != other.m_ptr)
+			{
+				free(m_ptr);
 
+				max_size = other.max_size;
+				m_ptr = reinterpret_cast<T*>(calloc(max_size, sizeof(T)));
+				next_pos = other.next_pos;
+				valid = other.valid;
+				if (!m_ptr)return dummy;
+				else
+				{
+					if (next_pos > 0)for (size_t count = 0; count < next_pos; ++count)m_ptr[count] = other.m_ptr[count];
+					return (*this);
+				}
+			}
+
+			return dummy;
+		}
+		BAG& operator=(BAG&& other)
+		{
+			BAG dummy{};
+			if (m_ptr != other.m_ptr)
+			{
+				free(m_ptr);
+
+				max_size = other.max_size;
+				m_ptr = reinterpret_cast<T*>(calloc(max_size, sizeof(T)));
+				next_pos = other.next_pos;
+				valid = other.valid;
+				if (!m_ptr)return dummy;
+				else
+				{
+					if (next_pos > 0)for (size_t count = 0; count < next_pos; ++count)m_ptr[count] = other.m_ptr[count];
+					other.m_ptr = nullptr;
+					return (*this);
+				}
+			}
+			return dummy;
+		}
+
+		T operator[](size_t index)
+		{
+			T dummy{};
+			if (index < 0 || index >= next_pos)return dummy;
+
+			return m_ptr[index];
+		}
+
+		bool empty()const
+		{
+			if (next_pos == 0)return true;
+
+			return false;
+		}
+		size_t size()const
+		{
+			return next_pos;
+		}
+		size_t capacity()const
+		{
+			return max_size;
+		}
+		bool has_elements()const
+		{
+			return valid;
+		}
 	};
 
 
