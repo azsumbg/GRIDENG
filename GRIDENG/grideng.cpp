@@ -622,6 +622,7 @@ dll::PIGS::PIGS(pigs _what_type, float _start_x, float _start_y) :PROTON(_start_
 	}
 
 	max_frame_delay = frame_delay;
+	dir = dirs::stop;
 }
 
 pigs dll::PIGS::get_type()const
@@ -770,9 +771,10 @@ void dll::PIGS::move(float gear)
 
 	if (move_sx > move_ex)
 	{
+		dir = dirs::left;
+
 		if (start.x - my_speed >= 0)
 		{
-			dir = dirs::left;
 			start.x -= my_speed;
 			start.y = start.x * slope + intercept;
 			set_edges();
@@ -787,9 +789,9 @@ void dll::PIGS::move(float gear)
 	}
 	else if (move_sx < move_ex)
 	{
+		dir = dirs::right;
 		if (end.x + my_speed <= scr_width)
 		{
-			dir = dirs::right;
 			start.x += my_speed;
 			start.y = start.x * slope + intercept;
 			set_edges();
@@ -816,7 +818,123 @@ void dll::PIGS::Release()
 
 void dll::PIGS::AIMove(BAG<FPOINT>& FoodBag, BAG<FPOINT>& ObstBag, FPOINT HeroPig, float game_speed)
 {
+	if (!FoodBag.empty())Sort(FoodBag, center);
+	if (!ObstBag.empty())Sort(ObstBag, center);
+	else move(game_speed);
 
+	FRECT dummy{ ObstBag[0].x - 100.0f, ObstBag[0].y - 60.0f, ObstBag[0].x + 100.0f, ObstBag[0].y + 60.0f };
+	FRECT myRect{ start.x,start.y,end.x,end.y };
+	
+	if (dir != dirs::stop)
+	{
+		switch (dir)
+		{
+		case dirs::up:
+			myRect.up -= game_speed;
+			myRect.down -= game_speed;
+			switch (Collision(myRect, dummy))
+			{
+			case up_flag:
+				if (dummy.left <= myRect.left)SetPath(0, ground);
+				else SetPath(scr_width, ground);
+				move(game_speed);
+				break;
+
+			case up_left_flag:
+				SetPath(scr_width, ground);
+				move(game_speed);
+				break;
+
+			case up_right_flag:
+				SetPath(0, ground);
+				move(game_speed);
+				break;
+
+			default: move(game_speed);
+			}
+			break;
+
+		case dirs::down:
+			myRect.up += game_speed;
+			myRect.down += game_speed;
+			switch (Collision(myRect, dummy))
+			{
+			case down_flag:
+				if (dummy.left <= myRect.left)SetPath(0, sky);
+				else SetPath(scr_width, sky);
+				move(game_speed);
+				break;
+
+			case down_left_flag:
+				SetPath(scr_width, sky);
+				move(game_speed);
+				break;
+
+			case down_right_flag:
+				SetPath(0, sky);
+				move(game_speed);
+				break;
+
+			default: move(game_speed);
+			}
+			break;
+
+		case dirs::left:
+			myRect.left -= game_speed;
+			myRect.right -= game_speed;
+			switch (Collision(myRect, dummy))
+			{
+			case left_flag:
+				if (dummy.up <= myRect.up)SetPath(scr_width, sky);
+				else SetPath(scr_width, ground);
+				move(game_speed);
+				break;
+
+			case up_left_flag:
+				SetPath(scr_width, ground);
+				move(game_speed);
+				break;
+
+			case down_left_flag:
+				SetPath(scr_width, sky);
+				move(game_speed);
+				break;
+
+			default: move(game_speed);
+			}
+			break;
+
+		case dirs::right:
+			myRect.left += game_speed;
+			myRect.right += game_speed;
+			switch (Collision(myRect, dummy))
+			{
+			case right_flag:
+				if (dummy.up <= myRect.up)SetPath(0, sky);
+				else SetPath(0, ground);
+				move(game_speed);
+				break;
+
+			case up_right_flag:
+				SetPath(0, ground);
+				move(game_speed);
+				break;
+
+			case down_right_flag:
+				SetPath(0, sky);
+				move(game_speed);
+				break;
+
+			default: move(game_speed);
+			}
+			break;
+		}
+	}
+	else
+	{
+		if (Distance(center, HeroPig) <= 200.0f)SetPath(HeroPig.x, HeroPig.y);
+		else if (!FoodBag.empty())SetPath(FoodBag[0].x, FoodBag[0].y);
+	}
 }
 
 dll::PIGS* dll::PIGS::create(pigs what_type, float start_x, float start_y)
