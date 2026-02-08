@@ -28,8 +28,23 @@ constexpr int BAG_BAD_PTR = 4001;
 constexpr int BAG_BAD_INDEX = 4002;
 constexpr int BAG_UNKNOWN_ERR = 4003;
 
-enum class dirs { up_left = 0, up = 1, up_right = 2, right = 3, down_right = 4, down = 5, down_left = 6, left = 7 };
+constexpr unsigned char no_collision{ 0b00000000 };
+
+constexpr unsigned char up_flag{ 0b00000001 };
+constexpr unsigned char down_flag{ 0b00000010 };
+constexpr unsigned char left_flag{ 0b00000100 };
+constexpr unsigned char right_flag{ 0b00001000 };
+
+constexpr unsigned char up_left_flag{ 0b00000101 };
+constexpr unsigned char up_right_flag{ 0b00000110 };
+constexpr unsigned char down_left_flag{ 0b00001001 };
+constexpr unsigned char down_right_flag{ 0b00001010 };
+
+
+enum class dirs { up_left = 0, up = 1, up_right = 2, right = 3, down_right = 4, down = 5, down_left = 6, left = 7, stop = 8 };
 enum class tiles { dirt = 0, forest = 1, lava = 2, path = 3, water = 4 };
+enum class pigs { fly = 0, tough = 1, runner = 2, freak = 3, hero = 4 };
+enum class food { bacon = 0, cheese = 1, fish = 2, pizza = 3, rotten = 4 };
 
 struct GRIDENG_API FPOINT
 {
@@ -319,7 +334,6 @@ namespace dll
 		}
 	};
 
-
 	class GRIDENG_API RANDIT
 	{
 	private:
@@ -386,7 +400,54 @@ namespace dll
 		void move(dirs to_where, float gear);
 	};
 
+	class GRIDENG_API PIGS :public PROTON
+	{
+	protected:
+		pigs _type{ pigs::hero };
 
+		float speed{ 0 };
 
+		int max_frames{ 0 };
+		int frame_delay{ 0 };
+		int max_frame_delay{ 0 };
+		int frame{ 0 };
 
+		float move_sx{ 0 };
+		float move_ex{ 0 };
+		float move_sy{ 0 };
+		float move_ey{ 0 };
+
+		float slope{ 0 };
+		float intercept{ 0 };
+
+		bool hor_dir{ false };
+		bool ver_dir{ false };
+
+		unsigned char Collision(FRECT myRect, FRECT ObstRect);
+		void SetPath(float _endx, float _endy);
+
+		PIGS(pigs _what_type, float _start_x, float _start_y);
+
+	public:
+		dirs dir = dirs::stop;
+
+		int get_frame();
+		pigs get_type()const;
+		void move(float gear);
+		void Release();
+
+		void AIMove(BAG<FPOINT>& FoodBag, BAG<FPOINT>& ObstBag, FPOINT HeroPig, float game_speed);
+
+		static PIGS* create(pigs what_type, float start_x, float start_y);
+	};
+
+	// FUNCTIONS **************************
+
+	GRIDENG_API bool Intersect(FRECT first, FRECT second);
+	GRIDENG_API bool Intersect(FPOINT first, FPOINT second, float first_x_rad, float second_x_rad,
+		float first_y_rad, float second_y_rad);
+
+	GRIDENG_API float Distance(FPOINT first, FPOINT second);
+
+	GRIDENG_API void Sort(BAG<FPOINT>& container, FPOINT target);
 }

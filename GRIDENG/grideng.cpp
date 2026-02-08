@@ -576,3 +576,300 @@ void dll::GRID::move(dirs to_where, float gear)
 }
 
 ////////////////////////////////////////
+
+// PIGS *******************************
+
+dll::PIGS::PIGS(pigs _what_type, float _start_x, float _start_y) :PROTON(_start_x, _start_y)
+{
+	_type = _what_type;
+
+	switch (_type)
+	{
+	case pigs::hero:
+		new_dims(82.0f, 100.0f);
+		speed = 1.5f;
+		max_frames = 15;
+		frame_delay = 4;
+		break;
+
+	case pigs::fly:
+		new_dims(80.0f, 43.0f);
+		speed = 0.9f;
+		max_frames = 1;
+		frame_delay = 30;
+		break;
+
+	case pigs::tough:
+		new_dims(90.0f, 73.0f);
+		speed = 1.5f;
+		max_frames = 4;
+		frame_delay = 12;
+		break;
+
+	case pigs::runner:
+		new_dims(83.0f, 100.0f);
+		speed = 0.7f;
+		max_frames = 11;
+		frame_delay = 5;
+		break;
+
+	case pigs::freak:
+		new_dims(70.0f, 57.0f);
+		speed = 0.6f;
+		max_frames = 10;
+		frame_delay = 5;
+		break;
+	}
+
+	max_frame_delay = frame_delay;
+}
+
+pigs dll::PIGS::get_type()const
+{
+	return _type;
+}
+unsigned char dll::PIGS::Collision(FRECT myRect, FRECT ObstRect)
+{
+	unsigned char coll_detected = no_collision;
+
+	if (!(myRect.left >= ObstRect.right || myRect.right <= ObstRect.left ||
+		myRect.up >= ObstRect.down || myRect.down <= ObstRect.up))
+	{
+		if (myRect.left >= ObstRect.left && myRect.left <= ObstRect.right)coll_detected |= left_flag;
+		else if (myRect.right >= ObstRect.left && myRect.right <= ObstRect.right)coll_detected |= right_flag;
+
+		if (myRect.up >= ObstRect.up && myRect.up <= ObstRect.down)coll_detected |= up_flag;
+		else if (myRect.down >= ObstRect.up && myRect.down <= ObstRect.up)coll_detected |= down_flag;
+	}
+
+	return coll_detected;
+}
+
+void dll::PIGS::SetPath(float _endx, float _endy)
+{
+	hor_dir = false;
+	ver_dir = false;
+
+	move_sx = start.x;
+	move_sy = start.y;
+
+	move_ex = _endx;
+	move_ey = _endy;
+
+	if (move_sx == move_ex || (move_ex > start.x && move_ex <= end.x))
+	{
+		ver_dir = true;
+		return;
+	}
+	if (move_sy == move_ey || (move_ey > start.y && move_ey <= end.y))
+	{
+		hor_dir = true;
+		return;
+	}
+
+	slope = (move_ey - move_sy) / (move_ex - move_sx);
+	intercept = start.y - start.x * slope;
+}
+
+int dll::PIGS::get_frame()
+{
+	--frame_delay;
+	if (frame_delay <= 0)
+	{
+		frame_delay = max_frame_delay;
+		++frame;
+		if (frame > max_frames)frame = 0;
+	}
+
+	return frame;
+}
+void dll::PIGS::move(float gear)
+{
+	float my_speed = speed + gear / 10.0f;
+
+	if (ver_dir)
+	{
+		if (move_sy > move_ey)
+		{
+			dir = dirs::up;
+			if (start.y - my_speed >= sky)
+			{
+				start.y -= my_speed;
+				set_edges();
+				if (start.y <= move_ey) dir = dirs::stop;
+				return;
+			}
+			else
+			{
+				dir = dirs::stop;
+				return;
+			}
+		}
+		else if (move_sy < move_ey)
+		{
+			dir = dirs::down;
+			if (end.y + my_speed <= ground)
+			{
+				start.y += my_speed;
+				set_edges();
+				if (end.y >= move_ey) dir = dirs::stop;
+				return;
+			}
+			else
+			{
+				dir = dirs::stop;
+				return;
+			}
+		}
+		else
+		{
+			dir = dirs::stop;
+			return;
+		}
+	}
+	if (hor_dir)
+	{
+		if (move_sx > move_ex)
+		{
+			dir = dirs::left;
+			if (start.x - my_speed >= 0)
+			{
+				start.x -= my_speed;
+				set_edges();
+				if (start.x <= move_ex) dir = dirs::stop;
+				return;
+			}
+			else
+			{
+				dir = dirs::stop;
+				return;
+			}
+		}
+		else if (move_sx < move_ex)
+		{
+			dir = dirs::right;
+			if (end.x + my_speed <= scr_width)
+			{
+				start.x += my_speed;
+				set_edges();
+				if (end.x >= move_ex) dir = dirs::stop;
+				return;
+			}
+			else
+			{
+				dir = dirs::stop;
+				return;
+			}
+		}
+		else
+		{
+			dir = dirs::stop;
+			return;
+		}
+	}
+
+	if (move_sx > move_ex)
+	{
+		if (start.x - my_speed >= 0)
+		{
+			dir = dirs::left;
+			start.x -= my_speed;
+			start.y = start.x * slope + intercept;
+			set_edges();
+			if (start.x <= move_ex) dir = dirs::stop;
+			return;
+		}
+		else
+		{
+			dir = dirs::stop;
+			return;
+		}
+	}
+	else if (move_sx < move_ex)
+	{
+		if (end.x + my_speed <= scr_width)
+		{
+			dir = dirs::right;
+			start.x += my_speed;
+			start.y = start.x * slope + intercept;
+			set_edges();
+			if (end.x >= move_ex) dir = dirs::stop;
+			return;
+		}
+		else
+		{
+			dir = dirs::stop;
+			return;
+		}
+	}
+	else
+	{
+		dir = dirs::stop;
+		return;
+	}
+}
+
+void dll::PIGS::Release()
+{
+	delete this;
+}
+
+void dll::PIGS::AIMove(BAG<FPOINT>& FoodBag, BAG<FPOINT>& ObstBag, FPOINT HeroPig, float game_speed)
+{
+
+}
+
+dll::PIGS* dll::PIGS::create(pigs what_type, float start_x, float start_y)
+{
+	PIGS* ret{ nullptr };
+
+	ret = new PIGS(what_type, start_x, start_y);
+
+	return ret;
+}
+
+///////////////////////////////////////
+
+
+//FUNCTIONS ***************************
+
+bool dll::Intersect(FRECT first, FRECT second)
+{
+	if (!(first.left >= second.right || first.right <= second.left ||
+		first.up >= second.down || first.down <= second.up))return true;
+	return false;
+}
+bool dll::Intersect(FPOINT first, FPOINT second, float first_x_rad, float second_x_rad,
+	float first_y_rad, float second_y_rad)
+{
+	if ((abs(second.x - first.x) <= first_x_rad + second_x_rad) && (abs(second.y - first.y) <= first_y_rad + second_y_rad))
+		return true;
+	return false;
+}
+
+float dll::Distance(FPOINT first, FPOINT second)
+{
+	float a = (float)(pow(abs(second.x - first.x), 2));
+	float b = (float)(pow(abs(second.y - first.y), 2));
+
+	return (float)(sqrt(a + b));
+}
+void dll::Sort(BAG<FPOINT>& container, FPOINT target)
+{
+	if (container.size() < 2)return;
+	bool is_ok = false;
+	while (!is_ok)
+	{
+		is_ok = true;
+		for (size_t count = 0; count < container.size() - 1; ++count)
+		{
+			if (Distance(container[count], target) > Distance(container[count + 1], target))
+			{
+				FPOINT temp = container[count];
+				container[count] = container[count + 1];
+				container[count + 1] = temp;
+				is_ok = false;
+			}
+		}
+	}
+}
