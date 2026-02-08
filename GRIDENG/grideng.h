@@ -122,7 +122,7 @@ namespace dll
 				{
 					++max_size;
 					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
-					if (!mPtr)return BAG_BAD_PTR;
+					if (!m_ptr)return BAG_BAD_PTR;
 					else
 					{
 						m_ptr[next_pos] = element;
@@ -155,7 +155,7 @@ namespace dll
 				{
 					++max_size;
 					m_ptr = reinterpret_cast<T*>(realloc(m_ptr, max_size * sizeof(T)));
-					if (!mPtr)return BAG_BAD_PTR;
+					if (!m_ptr)return BAG_BAD_PTR;
 					else
 					{
 						m_ptr[next_pos] = *element;
