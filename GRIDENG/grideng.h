@@ -430,6 +430,7 @@ namespace dll
 
 	public:
 		dirs dir = dirs::stop;
+		int lifes = 100;
 
 		int get_frame();
 		pigs get_type()const;
@@ -439,6 +440,23 @@ namespace dll
 		void AIMove(BAG<FPOINT>& FoodBag, BAG<FPOINT>& ObstBag, FPOINT HeroPig, float game_speed);
 
 		static PIGS* create(pigs what_type, float start_x, float start_y);
+	};
+
+	class GRIDENG_API FOOD :public PROTON
+	{
+	private:
+		food _type{ food::rotten };
+		float _speed{ 1.0f };
+
+		FOOD(food _what_type, float _first_x, float _first_y);
+
+	public:
+
+		food get_type()const;
+		void move(dirs dir, float gear);
+		void Release();
+
+		static FOOD* create(food what_type, float first_x, float first_y);
 	};
 
 	// FUNCTIONS **************************

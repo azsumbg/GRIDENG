@@ -948,6 +948,107 @@ dll::PIGS* dll::PIGS::create(pigs what_type, float start_x, float start_y)
 
 ///////////////////////////////////////
 
+// FOOD ******************************
+
+dll::FOOD::FOOD(food _what_type, float _first_x, float _first_y) :PROTON(_first_x, _first_y)
+{
+	_type = _what_type;
+
+	switch (_type)
+	{
+	case food::bacon:
+		new_dims(47.0f, 50.0f);
+		break;
+
+	case food::cheese:
+		new_dims(50.0f, 50.0f);
+		break;
+
+	case food::fish:
+		new_dims(50.0f, 36.0f);
+		break;
+
+	case food::pizza:
+		new_dims(49.0f, 50.0f);
+		break;
+
+	case food::rotten:
+		new_dims(89.0f, 50.0f);
+		break;
+	}
+}
+
+food dll::FOOD::get_type()const
+{
+	return _type;
+}
+void dll::FOOD::move(dirs dir, float gear)
+{
+	float my_speed = _speed + gear / 10.0f;
+
+	switch (dir)
+	{
+	case dirs::up:
+		start.y -= my_speed;
+		set_edges();
+		break;
+
+	case dirs::down:
+		start.y += my_speed;
+		set_edges();
+		break;
+
+	case dirs::left:
+		start.x -= my_speed;
+		set_edges();
+		break;
+
+	case dirs::right:
+		start.x += my_speed;
+		set_edges();
+		break;
+
+	case dirs::up_left:
+		start.x -= my_speed;
+		start.y -= my_speed;
+		set_edges();
+		break;
+
+	case dirs::up_right:
+		start.x += my_speed;
+		start.y -= my_speed;
+		set_edges();
+		break;
+
+	case dirs::down_left:
+		start.x -= my_speed;
+		start.y += my_speed;
+		set_edges();
+		break;
+
+	case dirs::down_right:
+		start.x += my_speed;
+		start.y += my_speed;
+		set_edges();
+		break;
+	}
+}
+void dll::FOOD::Release()
+{
+	delete this;
+}
+
+dll::FOOD* dll::FOOD::create(food what_type, float first_x, float first_y)
+{
+	FOOD* ret{ nullptr };
+
+	ret = new FOOD(what_type, first_x, first_y);
+
+	return ret;
+}
+
+
+//////////////////////////////////////
 
 //FUNCTIONS ***************************
 
